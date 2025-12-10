@@ -15,10 +15,16 @@ public class CopperStack {
     }
 
     public int pop() {
-        return stack.pop();
+        if(!stack.isEmpty()) {
+            return stack.pop();
+        }
+        return 0;
     }
 
     public int peek() {
-        return stack.peek();
+        if(!stack.isEmpty()) {
+            return stack.peek();
+        }
+        return 0;
     }
 }

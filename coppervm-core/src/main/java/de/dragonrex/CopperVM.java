@@ -10,6 +10,7 @@ public class CopperVM {
     private CopperMemory memory;
     private CopperFlagRegister flags;
     private CopperProgCounter pc;
+    private Scanner scanner;
 
     private Map<String, CopperRegister> registers;
 
@@ -276,14 +277,14 @@ public class CopperVM {
                 }
                 // READ
                 case 0x82 -> {
-                    Scanner scanner = new Scanner(System.in);
+                    scanner = new Scanner(System.in);
                     int value = scanner.nextInt();
                     getRegister("AX").store(value);
-                    scanner.close();
                 }
                 //############################ I/O Operations (0x80-0x8F) ############################
                 default -> {
                     System.err.println("Unknown instruction: " + instruction);
+                    scanner.close();
                     running = false;
                 }
             }
@@ -312,14 +313,14 @@ public class CopperVM {
         };
 
         /*
-        MOV_AX 5       ; 0x20, 0x05 - Counter auf 5 setzen
-        PUSH_AX        ; 0x24       - AX auf Stack
-        PRINT_STACK    ; 0x81       - Aktuellen Wert ausgeben
-        DEC_AX         ; 0x46       - AX dekrementieren
-        PUSH_AX        ; 0x24       - AX auf Stack
-        PUSH 0         ; 0x10, 0x00 - 0 auf Stack pushen
-        CMP            ; 0x54       - Vergleiche CX mit 0
-        JNZ 0          ; 0x62, 0x03 - Springe zurück wenn AX != 0
+        MOV_AX 5       ; 0x20, 0x05 - set Counter to 5
+        PUSH_AX        ; 0x24       - AX on Stack
+        PRINT_STACK    ; 0x81       - Print Actual Value
+        DEC_AX         ; 0x46       - AX decrement
+        PUSH_AX        ; 0x24       - AX on Stack
+        PUSH 0         ; 0x10, 0x00 - push 0 to Stack
+        CMP            ; 0x54       - Compare CX with 0
+        JNZ 0          ; 0x62, 0x03 - Jump back when AX != 0
         HALT           ; 0x00
          */
 
@@ -336,7 +337,58 @@ public class CopperVM {
 
         };
 
-        vm.loadProgram(loop_test_program);
+        /*
+        CALL 6         ; 0x65, 0x06 - jump to Address 6
+        HALT           ; 0x00
+        NOP            ; 0x01
+        NOP            ; 0x01
+        NOP            ; 0x01
+        Function by Address 6
+        PUSH 42        ; 0x10, 0x2A
+        POP_AX         ; 0x28
+        PRINT_AX       ; 0x80
+        RET            ; 0x66
+         */
+
+        int[] function_test_program = {
+                0x65, 0x06,
+                0x00,
+                0x01,
+                0x01,
+                0x01,
+                0x10, 0x2A,
+                0x28,
+                0x80,
+                0x66
+        };
+
+        /*
+        MOV_AX 1000           ; 0x20, 0x03E8
+        PRINT_AX              ; 0x80
+        READ                  ; 0x82
+        PUSH_AX  addr 5       ; 0x24
+        READ                  ; 0x82
+        PUSH_AX               ; 0x24
+        ADD                   ; 0x40
+        POP_AX                ; 0x28
+        PRINT_AX              ; 0x80
+        JMP  addr 5           ; 0x60, 0x05
+         */
+
+        int[] simple_calculator_program = {
+                0x20, 0x03E8,
+                0x80,
+                0x82,
+                0x24,
+                0x82,
+                0x24,
+                0x40,
+                0x28,
+                0x80,
+                0x60, 0x03
+        };
+
+        vm.loadProgram(simple_calculator_program);
         vm.run();
     }
 }
