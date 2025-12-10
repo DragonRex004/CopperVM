@@ -123,49 +123,61 @@ Der CopperVM Befehlssatz ist in 8 Kategorien unterteilt, die jeweils einen Berei
 
 ---
 
-## Beispielprogramme
+## Example Programs
 
-### Beispiel 1: Addition zweier Zahlen
+### Example 1: Addition of two Numbers
 ```
-PUSH 10        ; 0x10, 0x0A
-PUSH 20        ; 0x10, 0x14
-ADD            ; 0x40
-POP_AX         ; 0x28
-PRINT_AX       ; 0x80
+PUSH 10        ; 0x10, 0x0A - push 10 to Stack
+PUSH 20        ; 0x10, 0x14 - push 20 to Stack
+ADD            ; 0x40       - addition
+POP_AX         ; 0x28       - pop AX from Stack
+PRINT_AX       ; 0x80       - print AX
+HALT           ; 0x00       - halt
+```
+
+### Example 2: Loop (Countdown)
+```
+MOV_AX 5       ; 0x20, 0x05 - set Counter to 5
+PUSH_AX        ; 0x24       - AX on Stack
+PRINT_STACK    ; 0x81       - Print Actual Value
+DEC_AX         ; 0x46       - AX decrement
+PUSH_AX        ; 0x24       - AX on Stack
+PUSH 0         ; 0x10, 0x00 - push 0 to Stack
+CMP            ; 0x54       - Compare CX with 0
+JNZ 0          ; 0x62, 0x03 - Jump back when AX != 0
 HALT           ; 0x00
 ```
 
-**Bytecode:** `0x10 0x0A 0x10 0x14 0x40 0x28 0x80 0x00`
-
-### Beispiel 2: Schleife (Countdown)
+### Example 3: Function Call
 ```
-MOV_CX 5       ; 0x22, 0x05 - Counter auf 5 setzen
-PUSH_CX        ; 0x26       - CX auf Stack
-PRINT_STACK    ; 0x81       - Aktuellen Wert ausgeben
-DEC_CX         ; Hypothetisch: CX dekrementieren
-PUSH_CX        ; 0x26
-PUSH 0         ; 0x10, 0x00
-CMP            ; 0x54       - Vergleiche CX mit 0
-JNZ -10        ; 0x62, addr - Springe zurück wenn CX != 0
-HALT           ; 0x00
-```
-
-### Beispiel 3: Funktionsaufruf
-```
-MOV_BX 10      ; 0x21, 0x0A - Funktionsadresse
-CALL BX        ; 0x65       - Springe zu Funktion
-HALT           ; 0x00
-
-; Funktion bei Adresse 10
-PUSH 42        ; 0x10, 0x2A
-POP_AX         ; 0x28
-PRINT_AX       ; 0x80
-RET            ; 0x66       - Zurück zum Aufrufer
+CALL 6         ; 0x65, 0x06 - jump to Address 6
+HALT           ; 0x00       - halt
+NOP            ; 0x01       - no operation
+NOP            ; 0x01       - no operation
+NOP            ; 0x01       - no operation
+Function by Address 6
+PUSH 42        ; 0x10, 0x2A - push 42 to Stack
+POP_AX         ; 0x28       - pop AX from Stack
+PRINT_AX       ; 0x80       - print AX
+RET            ; 0x66       - return
 ```
 
+### Example 4: 
+```
+MOV_AX 1000           ; 0x20, 0x03E8 - set AX to 1000
+PRINT_AX              ; 0x80         - print AX
+READ                  ; 0x82         - read user input
+PUSH_AX  addr 5       ; 0x24         - push AX to Stack
+READ                  ; 0x82         - read user input
+PUSH_AX               ; 0x24         - push AX to Stack
+ADD                   ; 0x40         - addition
+POP_AX                ; 0x28         - pop AX from Stack
+PRINT_AX              ; 0x80         - print AX
+JMP  addr 5           ; 0x60, 0x05   - jump to Address 5
+```
 ---
 
-## Erweiterungsmöglichkeiten
+## Memory Map
 
 Reservierte Bereiche für zukünftige Erweiterungen:
 - **0x07-0x0F**: Erweiterte Systemsteuerung
