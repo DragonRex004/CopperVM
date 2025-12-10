@@ -28,15 +28,6 @@ public class CopperAlu {
         stack.push(result);
     }
 
-    public void cmp() {
-        int b = stack.pop();
-        int a = stack.pop();
-        int result = a - b;
-
-        flags.updateFlags(result);
-        flags.setCarry(a < b);
-    }
-
     public void mul() {
         int b = stack.pop();
         int a = stack.pop();
@@ -92,6 +83,50 @@ public class CopperAlu {
         flags.setCarry(false);
         flags.setOverflow(false);
 
+        stack.push(result);
+    }
+
+    public void cmp() {
+        int b = stack.pop();
+        int a = stack.pop();
+        int result = a - b;
+
+        flags.updateFlags(result);
+        flags.setCarry(a < b);
+    }
+
+    public void and() {
+        int a = stack.pop();
+        int b = stack.pop();
+        int result = a & b;
+
+        flags.updateFlags(result);
+        stack.push(result);
+    }
+
+    public void or() {
+        int a = stack.pop();
+        int b = stack.pop();
+        int result = a | b;
+
+        flags.updateFlags(result);
+        stack.push(result);
+    }
+
+    public void xor() {
+        int a = stack.pop();
+        int b = stack.pop();
+        int result = a ^ b;
+
+        flags.updateFlags(result);
+        stack.push(result);
+    }
+
+    public void not() {
+        int a = stack.pop();
+        int result = ~a;
+
+        flags.updateFlags(result);
         stack.push(result);
     }
 }
