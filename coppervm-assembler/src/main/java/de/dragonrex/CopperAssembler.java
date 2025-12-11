@@ -23,15 +23,15 @@ public class CopperAssembler {
     public static void main(String[] args) {
         int[] simple_calculator_program = {
                 0x20, 0x03E8,
-                0x80,
-                0x82,
+                0x80, 0x01,
+                0x80, 0x03,
                 0x24,
-                0x82,
+                0x80, 0x03,
                 0x24,
                 0x40,
                 0x28,
-                0x80,
-                0x60, 0x03
+                0x80, 0x01,
+                0x60, 0x04
         };
 
         try {

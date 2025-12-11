@@ -1,26 +1,34 @@
 package de.dragonrex;
 
+import de.dragonrex.syscalls.SysCall;
+import de.dragonrex.syscalls.impl.PrintAxSysCall;
+import de.dragonrex.syscalls.impl.PrintStackSysCall;
+import de.dragonrex.syscalls.impl.ReadSysCall;
+
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class CopperVM {
-    private CopperStack stack;
-    private CopperAlu alu;
-    private CopperMemory memory;
-    private CopperFlagRegister flags;
-    private CopperProgCounter pc;
-    private Scanner scanner;
+    public CopperStack stack;
+    public CopperAlu alu;
+    public CopperMemory memory;
+    public CopperFlagRegister flags;
+    public CopperProgCounter pc;
+    public Scanner scanner;
 
-    private int[] registers;
-    private static final int AX = 0;
-    private static final int BX = 1;
-    private static final int CX = 2;
-    private static final int DX = 3;
+    public int[] registers;
+    public static final int AX = 0;
+    public static final int BX = 1;
+    public static final int CX = 2;
+    public static final int DX = 3;
+
+    public ArrayList<SysCall> sysCalls;
 
     public CopperVM() {
         this.flags = new CopperFlagRegister();
@@ -32,6 +40,9 @@ public class CopperVM {
 
         this.registers = new int[4];
         Arrays.fill(this.registers, 0);
+
+        this.sysCalls = new ArrayList<>();
+        this.registerDefaultSysCalls();
     }
 
     public void loadProgram(int[] program) {
@@ -62,6 +73,16 @@ public class CopperVM {
 
             loadProgram(program);
         }
+    }
+
+    public void registerSysCall(SysCall sysCall) {
+        this.sysCalls.add(sysCall);
+    }
+
+    private void registerDefaultSysCalls() {
+        registerSysCall(new PrintAxSysCall());
+        registerSysCall(new PrintStackSysCall());
+        registerSysCall(new ReadSysCall());
     }
 
     public void run() {
@@ -286,21 +307,20 @@ public class CopperVM {
                 //############################ RAM Operations (0x70-0x7F) ############################
 
                 //############################ I/O Operations (0x80-0x8F) ############################
-                // PRINT_AX
+
                 case 0x80 -> {
-                    int value = this.registers[AX];
-                    System.out.println(value);
+                    int syscallNum = this.memory.read(pc.get());
+                    this.pc.inc();
+
+                    SysCall sysCall = this.sysCalls.stream()
+                            .filter(s -> s.address() == syscallNum)
+                            .findFirst()
+                            .orElse(null);
+                    if (sysCall != null) {
+                        sysCall.execute(this);
+                    }
                 }
-                // PRINT_STACK
-                case 0x81 -> {
-                    int value = stack.peek();
-                    System.out.println(value);
-                }
-                // READ
-                case 0x82 -> {
-                    int value = scanner.nextInt();
-                    this.registers[AX] = value;
-                }
+
                 //############################ I/O Operations (0x80-0x8F) ############################
                 default -> {
                     System.err.println("Unknown instruction: " + instruction);

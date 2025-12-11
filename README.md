@@ -162,18 +162,18 @@ PRINT_AX       ; 0x80       - print AX
 RET            ; 0x66       - return
 ```
 
-### Example 4: 
+### Example 4 Simple Calculator: 
 ```
-MOV_AX 1000           ; 0x20, 0x03E8 - set AX to 1000
-PRINT_AX              ; 0x80         - print AX
-READ                  ; 0x82         - read user input
-PUSH_AX  addr 5       ; 0x24         - push AX to Stack
-READ                  ; 0x82         - read user input
-PUSH_AX               ; 0x24         - push AX to Stack
-ADD                   ; 0x40         - addition
-POP_AX                ; 0x28         - pop AX from Stack
-PRINT_AX              ; 0x80         - print AX
-JMP  addr 5           ; 0x60, 0x05   - jump to Address 5
+MOV_AX 1000           ; 0x20 0x03E8 - set AX to 1000
+PRINT_AX              ; 0x80 0x01   - print AX
+READ                  ; 0x80 0x03   - read user input
+PUSH_AX  addr 5       ; 0x24        - push AX to Stack
+READ                  ; 0x80 0x03   - read user input
+PUSH_AX               ; 0x24        - push AX to Stack
+ADD                   ; 0x40        - addition
+POP_AX                ; 0x28        - pop AX from Stack
+PRINT_AX              ; 0x80 0x01   - print AX
+JMP  addr 5           ; 0x60 0x04   - jump to Address 5
 ```
 ---
 
