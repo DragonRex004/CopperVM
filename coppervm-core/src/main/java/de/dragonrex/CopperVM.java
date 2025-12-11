@@ -1,5 +1,10 @@
 package de.dragonrex;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -34,6 +39,29 @@ public class CopperVM {
             memory.write(i, program[i]);
         }
         pc.jump(0);
+    }
+
+    public void loadProgramFromFile(String filePath) throws IOException {
+        if (!filePath.endsWith(".cux")) {
+            throw new IllegalArgumentException("File must have .cux extension");
+        }
+
+        Path path = Path.of(filePath);
+        if (!Files.exists(path)) {
+            throw new IOException("File not found: " + filePath);
+        }
+
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(filePath))) {
+            int fileSize = (int) Files.size(path);
+            int programLength = fileSize / 4;
+
+            int[] program = new int[programLength];
+            for (int i = 0; i < programLength; i++) {
+                program[i] = dis.readInt();
+            }
+
+            loadProgram(program);
+        }
     }
 
     public void run() {
@@ -286,101 +314,16 @@ public class CopperVM {
     public static void main(String[] args) {
         CopperVM vm = new CopperVM();
 
-        /*
-        PUSH 10        ; 0x10, 0x0A
-        PUSH 20        ; 0x10, 0x14
-        ADD            ; 0x40
-        POP_AX         ; 0x28
-        PRINT_AX       ; 0x80
-        HALT           ; 0x00
-         */
-
-        int[] addition_test_program = {
-                0x10, 0x0A,
-                0x10, 0x14,
-                0x40,
-                0x28,
-                0x80,
-                0x00
-        };
-
-        /*
-        MOV_AX 5       ; 0x20, 0x05 - set Counter to 5
-        PUSH_AX        ; 0x24       - AX on Stack
-        PRINT_STACK    ; 0x81       - Print Actual Value
-        DEC_AX         ; 0x46       - AX decrement
-        PUSH_AX        ; 0x24       - AX on Stack
-        PUSH 0         ; 0x10, 0x00 - push 0 to Stack
-        CMP            ; 0x54       - Compare CX with 0
-        JNZ 0          ; 0x62, 0x03 - Jump back when AX != 0
-        HALT           ; 0x00
-         */
-
-        int[] loop_test_program = {
-                0x20, 0x05,
-                0x24,
-                0x81,
-                0x46,
-                0x24,
-                0x10, 0x00,
-                0x54,
-                0x62, 0x02,
-                0x00
-
-        };
-
-        /*
-        CALL 6         ; 0x65, 0x06 - jump to Address 6
-        HALT           ; 0x00
-        NOP            ; 0x01
-        NOP            ; 0x01
-        NOP            ; 0x01
-        Function by Address 6
-        PUSH 42        ; 0x10, 0x2A
-        POP_AX         ; 0x28
-        PRINT_AX       ; 0x80
-        RET            ; 0x66
-         */
-
-        int[] function_test_program = {
-                0x65, 0x06,
-                0x00,
-                0x01,
-                0x01,
-                0x01,
-                0x10, 0x2A,
-                0x28,
-                0x80,
-                0x66
-        };
-
-        /*
-        MOV_AX 1000           ; 0x20, 0x03E8
-        PRINT_AX              ; 0x80
-        READ                  ; 0x82
-        PUSH_AX  addr 5       ; 0x24
-        READ                  ; 0x82
-        PUSH_AX               ; 0x24
-        ADD                   ; 0x40
-        POP_AX                ; 0x28
-        PRINT_AX              ; 0x80
-        JMP  addr 5           ; 0x60, 0x05
-         */
-
-        int[] simple_calculator_program = {
-                0x20, 0x03E8,
-                0x80,
-                0x82,
-                0x24,
-                0x82,
-                0x24,
-                0x40,
-                0x28,
-                0x80,
-                0x60, 0x03
-        };
-
-        vm.loadProgram(simple_calculator_program);
-        vm.run();
+        if (args.length > 0) {
+            try {
+                vm.loadProgramFromFile(args[0]);
+                vm.run();
+            } catch (IOException e) {
+                System.err.println("Error loading program: " + e.getMessage());
+                System.exit(1);
+            }
+        } else {
+            System.err.println("No program specified");
+        }
     }
 }
