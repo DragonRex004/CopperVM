@@ -127,8 +127,8 @@ Der CopperVM Befehlssatz ist in 8 Kategorien unterteilt, die jeweils einen Berei
 
 ### Example 1: Addition of two Numbers
 ```
-PUSH 10        ; 0x10, 0x0A - push 10 to Stack
-PUSH 20        ; 0x10, 0x14 - push 20 to Stack
+PUSH 10        ; 0x10 0x0A  - push 10 to Stack
+PUSH 20        ; 0x10 0x14  - push 20 to Stack
 ADD            ; 0x40       - addition
 POP_AX         ; 0x28       - pop AX from Stack
 PRINT_AX       ; 0x80       - print AX
@@ -137,26 +137,26 @@ HALT           ; 0x00       - halt
 
 ### Example 2: Loop (Countdown)
 ```
-MOV_AX 5       ; 0x20, 0x05 - set Counter to 5
+MOV_AX 5       ; 0x20 0x05  - set Counter to 5
 PUSH_AX        ; 0x24       - AX on Stack
 PRINT_STACK    ; 0x81       - Print Actual Value
 DEC_AX         ; 0x46       - AX decrement
 PUSH_AX        ; 0x24       - AX on Stack
-PUSH 0         ; 0x10, 0x00 - push 0 to Stack
+PUSH 0         ; 0x10 0x00  - push 0 to Stack
 CMP            ; 0x54       - Compare CX with 0
-JNZ 0          ; 0x62, 0x03 - Jump back when AX != 0
+JNZ 0          ; 0x62 0x03  - Jump back when AX != 0
 HALT           ; 0x00
 ```
 
 ### Example 3: Function Call
 ```
-CALL 6         ; 0x65, 0x06 - jump to Address 6
+CALL 6         ; 0x65 0x06  - jump to Address 6
 HALT           ; 0x00       - halt
 NOP            ; 0x01       - no operation
 NOP            ; 0x01       - no operation
 NOP            ; 0x01       - no operation
 Function by Address 6
-PUSH 42        ; 0x10, 0x2A - push 42 to Stack
+PUSH 42        ; 0x10 0x2A  - push 42 to Stack
 POP_AX         ; 0x28       - pop AX from Stack
 PRINT_AX       ; 0x80       - print AX
 RET            ; 0x66       - return
