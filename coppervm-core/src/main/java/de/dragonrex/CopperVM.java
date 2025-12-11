@@ -1,7 +1,6 @@
 package de.dragonrex;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class CopperVM {
@@ -12,7 +11,11 @@ public class CopperVM {
     private CopperProgCounter pc;
     private Scanner scanner;
 
-    private Map<String, CopperRegister> registers;
+    private int[] registers;
+    private static final int AX = 0;
+    private static final int BX = 1;
+    private static final int CX = 2;
+    private static final int DX = 3;
 
     public CopperVM() {
         this.flags = new CopperFlagRegister();
@@ -20,20 +23,10 @@ public class CopperVM {
         this.alu = new CopperAlu(stack, flags);
         this.memory = new CopperMemory(1024);
         this.pc = new CopperProgCounter();
-        this.registers = new HashMap<>();
+        this.scanner = new Scanner(System.in);
 
-        addRegister("AX");
-        addRegister("BX");
-        addRegister("CX");
-        addRegister("DX");
-    }
-
-    public void addRegister(String name) {
-        registers.put(name, new CopperRegister(name));
-    }
-
-    public CopperRegister getRegister(String name) {
-        return registers.get(name);
+        this.registers = new int[4];
+        Arrays.fill(this.registers, 0);
     }
 
     public void loadProgram(int[] program) {
@@ -89,67 +82,67 @@ public class CopperVM {
                 case 0x20 -> {
                     int regVal = memory.read(pc.get());
                     pc.inc();
-                    getRegister("AX").store(regVal);
+                    this.registers[AX] = regVal;
                 }
                 // MOV_BX
                 case 0x21 -> {
                     int regVal = memory.read(pc.get());
                     pc.inc();
-                    getRegister("BX").store(regVal);
+                    this.registers[BX] = regVal;
                 }
                 // MOV_CX
                 case 0x22 -> {
                     int regVal = memory.read(pc.get());
                     pc.inc();
-                    getRegister("CX").store(regVal);
+                    this.registers[CX] = regVal;
                 }
                 // MOV_DX
                 case 0x23 -> {
                     int regVal = memory.read(pc.get());
                     pc.inc();
-                    getRegister("DX").store(regVal);
+                    this.registers[DX] = regVal;
                 }
 
                 // PUSH_AX
                 case 0x24 -> {
-                    int regVal = getRegister("AX").load();
+                    int regVal = this.registers[AX];
                     stack.push(regVal);
                 }
                 // PUSH_BX
                 case 0x25 -> {
-                    int regVal = getRegister("BX").load();
+                    int regVal = this.registers[BX];
                     stack.push(regVal);
                 }
                 // PUSH_CX
                 case 0x26 -> {
-                    int regVal = getRegister("CX").load();
+                    int regVal = this.registers[CX];
                     stack.push(regVal);
                 }
                 // PUSH_DX
                 case 0x27 -> {
-                    int regVal = getRegister("DX").load();
+                    int regVal = this.registers[DX];
                     stack.push(regVal);
                 }
 
                 // POP_AX
                 case 0x28 -> {
                     int regVal = stack.pop();
-                    getRegister("AX").store(regVal);
+                    this.registers[AX] = regVal;
                 }
                 // POP_BX
                 case 0x29 -> {
                     int regVal = stack.pop();
-                    getRegister("BX").store(regVal);
+                    this.registers[BX] = regVal;
                 }
                 // POP_CX
                 case 0x2A -> {
                     int regVal = stack.pop();
-                    getRegister("CX").store(regVal);
+                    this.registers[CX] = regVal;
                 }
                 // POP_DX
                 case 0x2B -> {
                     int regVal = stack.pop();
-                    getRegister("DX").store(regVal);
+                    this.registers[DX] = regVal;
                 }
                 //############################ Register Operations (0x20-0x3F) ############################
 
@@ -165,9 +158,9 @@ public class CopperVM {
                 // MOD
                 case 0x44 -> alu.mod();
                 // INC_AX
-                case 0x45 -> getRegister("AX").store(getRegister("AX").load() + 1);
+                case 0x45 -> this.registers[AX] = this.registers[AX]++;
                 // DEC_AX
-                case 0x46 -> getRegister("AX").store(getRegister("AX").load() - 1);
+                case 0x46 -> this.registers[AX] = this.registers[AX]--;
                 //############################ Arithmetic Operations (0x40-0x4F) ############################
 
                 //############################ Logic & Compare Operations (0x50-0x5F) ############################
@@ -252,13 +245,13 @@ public class CopperVM {
                 }
                 // LOAD_IND
                 case 0x72 -> {
-                    int addr = getRegister("AX").load();
+                    int addr = this.registers[AX];
                     int val = memory.read(addr);
                     stack.push(val);
                 }
                 // STORE_IND
                 case 0x73 -> {
-                    int addr = getRegister("AX").load();
+                    int addr = this.registers[AX];
                     int val = stack.pop();
                     memory.write(addr, val);
                 }
@@ -267,7 +260,7 @@ public class CopperVM {
                 //############################ I/O Operations (0x80-0x8F) ############################
                 // PRINT_AX
                 case 0x80 -> {
-                    int value = getRegister("AX").load();
+                    int value = this.registers[AX];
                     System.out.println(value);
                 }
                 // PRINT_STACK
@@ -277,9 +270,8 @@ public class CopperVM {
                 }
                 // READ
                 case 0x82 -> {
-                    scanner = new Scanner(System.in);
                     int value = scanner.nextInt();
-                    getRegister("AX").store(value);
+                    this.registers[AX] = value;
                 }
                 //############################ I/O Operations (0x80-0x8F) ############################
                 default -> {

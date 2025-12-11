@@ -1,30 +1,36 @@
 package de.dragonrex;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-
 public class CopperStack {
-    private Deque<Integer> stack;
+    private int stackPointer;
+    private int[] stack;
 
     public CopperStack() {
-        stack = new ArrayDeque<>();
+        this.stack = new int[1024];
+        this.stackPointer = 0;
     }
 
     public void push(int value) {
-        stack.push(value);
+        if (stackPointer >= stack.length) {
+            throw new StackOverflowError("Stack overflow");
+        }
+        stack[stackPointer++] = value;
     }
 
     public int pop() {
-        if(!stack.isEmpty()) {
-            return stack.pop();
+        if (stackPointer <= 0) {
+            throw new IllegalStateException("Stack underflow");
         }
-        return 0;
+        return stack[--stackPointer];
     }
 
     public int peek() {
-        if(!stack.isEmpty()) {
-            return stack.peek();
+        if (stackPointer <= 0) {
+            throw new IllegalStateException("Stack is empty");
         }
-        return 0;
+        return stack[stackPointer - 1];
+    }
+
+    public boolean isEmpty() {
+        return stackPointer == 0;
     }
 }
