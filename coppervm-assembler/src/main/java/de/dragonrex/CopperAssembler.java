@@ -1,13 +1,18 @@
 package de.dragonrex;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.*;
+import de.dragonrex.cli.CliConfig;
+import de.dragonrex.cli.CliParser;
 
 public class CopperAssembler {
     private Map<String, Integer> labels = new HashMap<>();
     private List<Integer> machineCode = new ArrayList<>();
     private List<ParsedLine> parsedLines = new ArrayList<>();
+    private int[] program = new int[0];
 
     static class ParsedLine {
         String instruction;
@@ -130,24 +135,36 @@ public class CopperAssembler {
         }
     }
 
-    public void assembleFile(String inputPath, String outputPath) throws IOException, AssemblerException {
-        String sourceCode = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(inputPath)));
-        int[] program = assemble(sourceCode);
-        saveProgramToFile(program, outputPath);
+    public void assembleFiles(List<String> inputPaths) throws IOException, AssemblerException {
+        // Alle Dateien zu einem großen Source-Code zusammenfügen
+        StringBuilder combinedSource = new StringBuilder();
+
+        for (String inputPath : inputPaths) {
+            String sourceCode = new String(Files.readAllBytes(Paths.get(inputPath)));
+            combinedSource.append(sourceCode);
+            combinedSource.append("\n");
+        }
+
+        // Einmal assemblieren mit allen Labels
+        this.program = assemble(combinedSource.toString());
     }
 
-    public static void saveProgramToFile(int[] program, String filePath) throws IOException {
-        if (!filePath.endsWith(".cux")) {
-            filePath += ".cux";
-        }
-
-        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filePath))) {
-            for (int instruction : program) {
-                dos.writeInt(instruction);
+    public void saveProgramToFile(String filePath) {
+        try {
+            if (!filePath.endsWith(".cux")) {
+                filePath += ".cux";
             }
-        }
 
-        System.out.println("Program saved to: " + filePath);
+            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filePath))) {
+                for (int instruction : this.program) {
+                    dos.writeInt(instruction);
+                }
+            }
+
+            System.out.println("Program saved to: " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static class AssemblerException extends Exception {
@@ -157,17 +174,27 @@ public class CopperAssembler {
     }
 
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Usage: CopperAssembler <input.asm> <output.cux>");
-            System.exit(1);
-        }
-
-        CopperAssembler assembler = new CopperAssembler();
         try {
-            assembler.assembleFile(args[0], args[1]);
-            System.out.println("Assembly successful!");
+            CliConfig config = CliParser.parse(args);
+            CopperAssembler assembler = new CopperAssembler();
+
+            switch (config.getCommand()) {
+                case ASSEMBLE -> {
+                    System.out.println("Output: " + config.getOutputFile());
+                    System.out.println("Inputs:");
+                    List<String> inputPaths = new ArrayList<>();
+                    config.getInputFiles().forEach(p -> {
+                        System.out.println("  " + p);
+                        inputPaths.add(p.toString());
+                    });
+                    assembler.assembleFiles(inputPaths);
+                    assembler.saveProgramToFile(config.getOutputFile().toString());
+                }
+                default -> System.out.println("Invalid command: " + config.getCommand());
+            }
         } catch (IOException | AssemblerException e) {
             System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         }
     }
